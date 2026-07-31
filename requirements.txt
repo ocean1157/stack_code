@@ -1,0 +1,3 @@
+# Runtime intentionally stays small. Python 3.12+; bundled Codex runtime already provides these.
+numpy>=2.0
+pandas>=2.2

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="A股热度信号、回测和券商行业研报分析">
+  <title>Quant Scope · 量化决策台</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">QS</span><div><strong>Quant Scope</strong><small>A 股研究工作台</small></div></div>
+    <nav class="nav" aria-label="报表导航"><button class="nav-btn active" data-view="overview">总览</button><button class="nav-btn" data-view="signals">信号</button><button class="nav-btn" data-view="funds">资金流</button><button class="nav-btn" data-view="macro">全球宏观</button><button class="nav-btn" data-view="performance">回测验证</button><button class="nav-btn" data-view="research">行业研报</button><button class="nav-btn" data-view="news">新闻影响</button><button class="nav-btn" data-view="quality">数据质量</button></nav>
+    <div class="live"><i></i><span id="market-status">连接中</span><time id="clock"></time></div>
+  </header>
+  <main>
+    <section class="hero"><div><p class="eyebrow">DAILY DECISION SYSTEM</p><h1>市场决策，一屏读懂</h1><p class="subtitle">热度前 50、量化信号、样本外回测与券商研报共识。</p></div><div class="run-meta"><span>最近模型运行</span><strong id="run-time">—</strong><code id="run-id">—</code></div></section>
+
+    <section id="view-overview" class="view active">
+      <div class="kpi-grid"><article class="kpi"><span>样本外年化</span><strong id="annual-return">—</strong><small>已计交易成本</small></article><article class="kpi"><span>Sharpe</span><strong id="sharpe">—</strong><small>风险调整后收益</small></article><article class="kpi"><span>最大回撤</span><strong id="drawdown">—</strong><small>样本外峰谷跌幅</small></article><article class="kpi"><span>方向准确率</span><strong id="accuracy">—</strong><small id="baseline">基线 —</small></article></div>
+      <div class="overview-layout">
+        <article class="panel signal-mix"><div class="panel-head"><div><span class="label">当前信号结构</span><h2>热度股票池</h2></div><span class="muted" id="latest-date">—</span></div><div class="mix-body"><div class="donut" id="donut"><div><strong id="total-signals">—</strong><span>股票</span></div></div><div class="legend"><button data-filter="BUY"><i class="buy"></i><span>买入</span><strong id="buy-count">—</strong></button><button data-filter="HOLD"><i class="hold"></i><span>观望</span><strong id="hold-count">—</strong></button><button data-filter="SELL"><i class="sell"></i><span>卖出</span><strong id="sell-count">—</strong></button></div></div></article>
+        <article class="panel chart-panel compact"><div class="panel-head"><div><span class="label">样本外表现</span><h2>策略净值</h2></div><span class="muted">测试区间</span></div><canvas id="equity-chart" height="168" aria-label="策略净值：横轴交易日期，纵轴累计净值"></canvas></article>
+      </div>
+      <article class="panel top-signals"><div class="panel-head"><div><span class="label">高置信度机会</span><h2>模型优先级</h2></div><button class="text-btn" data-goto="signals">查看全部 →</button></div><div id="signal-cards" class="signal-cards"></div></article>
+    </section>
+
+    <section id="view-signals" class="view">
+      <article class="panel stock-analyzer"><div class="panel-head"><div><span class="label">新增股票分析接口</span><h2>输入代码，分析近30个交易日</h2></div><span class="muted">趋势 / 动量 / RSI / 波动 / 回撤 / 量能</span></div><form id="stock-analysis-form"><input id="stock-analysis-code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="例如 600519" required><span id="stock-code-name" class="stock-code-name muted">输入6位代码自动识别名称</span><button type="submit">开始分析</button><input id="stock-analysis-include" type="checkbox" hidden><button id="add-analysis-list" type="button" class="secondary-action" disabled>加入分析列表</button></form><div id="stock-analysis-result" class="analysis-result muted">输入6位 A 股代码后生成可审计的 BUY / HOLD / SELL 研究提示。</div></article>
+      <article class="panel table-panel"><div class="panel-head"><div><span class="label">最新决策</span><h2>全部股票信号</h2></div><div class="controls"><input id="signal-search" type="search" placeholder="代码或名称"><select id="signal-filter"><option value="ALL">全部信号</option><option>BUY</option><option>HOLD</option><option>SELL</option></select></div></div><div class="table-wrap"><table><thead><tr><th>热度</th><th>股票代码 / 名称</th><th>行业</th><th>信号</th><th>上涨概率</th><th>置信度</th><th>最新价</th><th>涨跌幅</th><th>日期</th><th>分析清单</th></tr></thead><tbody id="signals-body"></tbody></table></div></article>
+    </section>
+
+    <section id="view-performance" class="view"><div class="performance-grid"><article class="panel chart-panel"><div class="panel-head"><div><span class="label">策略净值</span><h2>严格样本外测试</h2></div><span class="muted">含交易成本</span></div><canvas id="equity-chart-large" height="270" aria-label="策略净值：横轴交易日期，纵轴累计净值"></canvas></article><article class="panel"><div class="panel-head"><div><span class="label">解释性</span><h2>特征贡献</h2></div></div><div id="weights" class="weights"></div></article></div><article class="panel table-panel"><div class="panel-head"><div><span class="label">昨日信号复盘</span><h2>昨日与今日 OHLC 中位价对比<sup><a href="#note-ohlc">[6]</a></sup></h2></div><span class="muted" id="evaluation-summary">等待下一交易日行情</span></div><div class="table-wrap"><table><thead><tr><th>信号日 / 验证日</th><th>股票</th><th>信号</th><th>昨日中位价</th><th>今日中位价</th><th>中位价变化</th><th>判断</th><th>错误诊断 / 优化候选</th></tr></thead><tbody id="performance-evaluation-body"></tbody></table></div></article><article class="panel table-panel"><div class="panel-head"><div><span class="label">稳定性跟踪</span><h2>模型运行历史</h2></div></div><div class="table-wrap"><table><thead><tr><th>运行时间</th><th>阈值</th><th>Top K</th><th>年化</th><th>Sharpe</th><th>最大回撤</th><th>准确率</th></tr></thead><tbody id="runs-body"></tbody></table></div></article><article class="panel glossary"><div class="panel-head"><div><span class="label">术语引注</span><h2>指标口径与限制</h2></div></div><ol><li><strong>样本外测试</strong>：模型选择完成后，在未参与训练和调参的数据上检验。</li><li><strong>Sharpe</strong>：单位波动风险对应的超额收益；不能替代回撤分析。</li><li><strong>最大回撤</strong>：净值从历史峰值到随后谷值的最大跌幅。</li><li><strong>RSI(14)</strong>：14期相对强弱指标，衡量近期上涨与下跌动能，不等于确定反转。</li><li><strong>Point-in-time</strong>：仅使用决策当时可见的数据，防止未来信息泄漏。</li><li id="note-ohlc"><strong>OHLC 中位价代理</strong>：取开、高、低、收四个价格排序后中间两项的均值；因未持久化逐笔成交，它不是逐笔成交价的精确中位数。</li></ol></article></section>
+
+    <section id="view-research" class="view">
+      <div id="research-kpis" class="kpi-grid"></div>
+      <div class="research-charts"><article class="panel chart-panel interactive-chart"><div class="panel-head"><div><span class="label">行业热度 · 点击跳转</span><h2>偏多行业排行</h2></div><span class="muted">点击行业查看对应报告</span></div><canvas id="industry-chart" height="290" aria-label="偏多行业排行：横轴综合情绪评分，纵轴行业"></canvas></article><article class="panel chart-panel interactive-chart"><div class="panel-head"><div><span class="label">机构态度 · 落到个股</span><h2>研报映射候选股票</h2></div><span class="muted">点击股票查看当日/最近交易日走势</span></div><canvas id="rating-chart" height="290" aria-label="机构研报映射股票：横轴股票，纵轴综合评分"></canvas></article></div>
+      <article class="panel research-digest"><div class="panel-head"><div><span class="label">行业映射</span><h2>研报偏多关联的热榜股票</h2></div><span class="muted">行业观点 ≠ 券商直接个股评级</span></div><div class="table-wrap research-stock-wrap"><table><thead><tr><th>股票</th><th>行业</th><th>自选行业提示</th><th>研报观点</th><th>研报评分</th><th>相关研报</th><th>券商数</th><th>评级构成</th><th>量化信号</th></tr></thead><tbody id="research-stocks-body"></tbody></table></div></article>
+      <article class="panel research-digest"><div class="panel-head"><div><span class="label">机构共识</span><h2>最新行业观点</h2></div><span class="muted" id="research-time">—</span></div><div id="digest-grid" class="digest-grid"></div></article>
+      <article class="panel table-panel"><div class="panel-head"><div><span class="label">公开研报索引</span><h2>券商研报与结构化分析</h2></div><div class="controls"><input id="research-search" type="search" placeholder="行业、券商或标题"><select id="research-filter"><option value="ALL">全部观点</option><option>偏多</option><option>中性</option><option>偏空</option></select></div></div><div class="table-wrap"><table><thead><tr><th>日期</th><th>行业</th><th>券商</th><th>评级</th><th>观点</th><th>评分</th><th>标题</th><th>分析摘要</th></tr></thead><tbody id="research-body"></tbody></table></div></article>
+    </section>
+
+    <section id="view-news" class="view">
+      <article class="panel chart-panel news-impact-panel"><div class="panel-head"><div><span class="label">NEWS × INDUSTRY × STOCK</span><h2>新闻影响气泡图</h2></div><span class="muted">横轴：文本情绪 · 纵轴：五日涨跌 · 气泡：覆盖强度</span></div><canvas id="news-bubble-chart" height="430" aria-label="新闻影响气泡图：横轴新闻情绪，纵轴股票五日收益"></canvas><div class="bubble-legend"><span><i class="bubble-up"></i>五日上涨</span><span><i class="bubble-down"></i>五日下跌</span><span>点击气泡查看股票走势</span></div></article>
+      <div class="news-model-grid"><article class="panel"><span class="label">当前可审计版本</span><h2>情绪与事件研究</h2><p>使用结构化文本情绪、行业映射、新闻数量和信号置信度形成影响分；再用发布后第 5 个交易日收益验证。它衡量相关性，不宣称因果。</p></article><article class="panel"><span class="label">推荐生产模型</span><h2>FinBERT + 事件分类 + 横截面模型</h2><p>中文金融语言模型抽取情绪、主体和事件类型；行业/股票实体链接；最后用 LightGBM 或带固定效应的面板回归预测 1/3/5 日异常收益。</p></article><article class="panel"><span class="label">防止虚假结论</span><h2>时间戳与异常收益</h2><p>严格保存新闻首次发布时间、去重转载，剔除盘后时间偏差，并扣除市场和行业同期收益后再评价新闻增量影响。</p></article></div>
+    </section>
+
+    <section id="view-funds" class="view">
+      <article class="panel"><div class="panel-head"><div><span class="label">资金流可行度</span><h2>主力 / 超大单 / 大单综合跟随评分</h2></div><span class="muted">可靠度不足时一律只显示“观察”</span></div><canvas id="fund-flow-chart" height="240" aria-label="资金流评分图：横轴股票，纵轴跟随评分"></canvas></article>
+      <article class="panel table-panel"><div class="table-wrap"><table><thead><tr><th>股票</th><th>跟随评分</th><th>可靠度</th><th>意见</th><th>量化信号</th><th>主要依据</th></tr></thead><tbody id="fund-flow-body"></tbody></table></div></article>
+    </section>
+    <section id="view-macro" class="view">
+      <div id="macro-kpis" class="kpi-grid"></div>
+      <article class="panel table-panel"><div class="panel-head"><div><span class="label">市场状态</span><h2>全球指数、商品、汇率与利率</h2></div><span class="muted">交易中显示实时状态；休市显示最近收盘</span></div><div class="table-wrap"><table><thead><tr><th>资产</th><th>类型</th><th>国家</th><th>价格</th><th>涨跌幅</th><th>状态</th><th>更新时间</th></tr></thead><tbody id="global-market-body"></tbody></table></div></article>
+      <article class="panel"><div class="panel-head"><div><span class="label">多模型周期定位</span><h2>景气 / 流动性 / 风险偏好 / 康波代理</h2></div><span class="muted">康波仅作低置信度长期代理，不用于短线择时</span></div><div id="cycle-grid" class="digest-grid"></div></article>
+      <article class="panel table-panel"><div class="panel-head"><div><span class="label">贸易结构</span><h2>进出口增长与潜在受益行业</h2></div></div><div class="table-wrap"><table><thead><tr><th>分类</th><th>方向</th><th>金额</th><th>同比</th><th>机会分</th><th>潜在行业</th><th>风险</th></tr></thead><tbody id="trade-body"></tbody></table></div></article>
+    </section>
+    <section id="view-quality" class="view"><div class="quality-grid" id="quality-grid"></div><article class="panel table-panel"><div class="panel-head"><div><span class="label">五日验证</span><h2>每条历史信号逐股验收</h2></div><span class="muted" id="evaluation-summary">等待第 5 个后续交易日行情</span></div><div class="table-wrap"><table id="evaluation-table" class="sortable-table"><thead><tr><th data-sort="signal_at">原始信号时间</th><th data-sort="evaluation_date">第5交易日</th><th data-sort="symbol">股票</th><th data-sort="confidence">置信度</th><th data-sort="raw_action">原始信号</th><th data-sort="execution_action">执行信号</th><th data-sort="median_return">五日涨跌</th><th data-sort="median_correct">是否准确</th></tr></thead><tbody id="evaluation-body"></tbody></table></div></article><article class="panel table-panel"><div class="panel-head"><div><span class="label">审计轨迹</span><h2>最近信号变更</h2></div></div><div class="table-wrap"><table><thead><tr><th>时间</th><th>股票</th><th>原信号</th><th>新信号</th><th>原概率</th><th>新概率</th><th>类型</th></tr></thead><tbody id="changes-body"></tbody></table></div></article></section>
+  </main>
+  <footer><span>研究级决策支持，不构成投资建议</span><span>PostgreSQL · Point-in-time · Cost-aware</span></footer>
+</div>
+
+<button id="chat-launcher" aria-label="打开 Quant 研究助手"><span>✦</span> 研究助手</button>
+<aside id="chat-panel" class="chat-panel" aria-label="Quant 研究助手">
+  <header><div><strong>Quant 研究助手</strong><small>基于当前数据库指标</small></div><button id="chat-close" aria-label="关闭">×</button></header>
+  <div class="chat-context" id="chat-context">当前上下文：总览</div>
+  <div id="chat-messages" class="chat-messages"><div class="chat-message assistant">你好，我可以结合当前信号、回测和研报数据回答问题。试试问：“哪些行业和股票同时偏多？”</div></div>
+  <div class="chat-suggestions"><button>哪些行业最偏多？</button><button>哪些股票研报和量化都偏多？</button><button>当前回测风险如何？</button></div>
+  <form id="chat-form"><textarea id="chat-input" rows="2" maxlength="2000" placeholder="针对当前指标提问…"></textarea><button type="submit">发送</button></form>
+  <p class="chat-note">回答仅用于研究，不构成投资建议或自动下单指令。</p>
+</aside>
+<dialog id="symbol-dialog"><button class="dialog-close" aria-label="关闭">×</button><div id="symbol-detail"></div><canvas id="symbol-chart" height="230" aria-label="个股价格：横轴交易日期，纵轴复权收盘价"></canvas><div id="symbol-history"></div></dialog>
+<script src="/app.js" defer></script>
+<script src="/news.js" defer></script>
+<script src="/evaluations.js" defer></script>
+<script src="/stock-entry.js" defer></script>
+<script src="/signals-sort.js" defer></script>
+<script>addEventListener('DOMContentLoaded',()=>document.querySelectorAll('#evaluation-table th[data-sort]').forEach(th=>th.addEventListener('click',()=>{evaluationSort={key:th.dataset.sort,direction:evaluationSort.key===th.dataset.sort?-evaluationSort.direction:1};renderEvaluations({evaluated_count:evaluations.filter(x=>x.evaluation_date).length})})))</script>
+</body></html>

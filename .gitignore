@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.idea/
+
+*.log
+web_server.stdout.log
+web_server.stderr.log
+
+.DS_Store
+Thumbs.db
+
+outputs/*.inspect.ndjson
